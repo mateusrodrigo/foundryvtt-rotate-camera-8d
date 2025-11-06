@@ -1,0 +1,7 @@
+{
+  "RC8D.RotateLeft.name": "Rotate Camera Left",
+  "RC8D.RotateLeft.hint": "Rotates the canvas 45° counter-clockwise around the center of your view.",
+
+  "RC8D.RotateRight.name": "Rotate Camera Right",
+  "RC8D.RotateRight.hint": "Rotates the canvas 45° clockwise around the center of your view."
+}

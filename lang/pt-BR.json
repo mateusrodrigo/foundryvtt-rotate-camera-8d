@@ -1,0 +1,7 @@
+{
+  "RC8D.RotateLeft.name": "Girar câmera para a esquerda",
+  "RC8D.RotateLeft.hint": "Gira o canvas 45° para a esquerda em torno do centro da sua visão.",
+
+  "RC8D.RotateRight.name": "Girar câmera para a direita",
+  "RC8D.RotateRight.hint": "Gira o canvas 45° para a direita em torno do centro da sua visão."
+}
