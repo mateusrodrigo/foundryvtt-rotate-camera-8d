@@ -1,10 +1,10 @@
 // ===========================
 // File: scripts/rotate-camera-8d.js  (Foundry v13+)
-// Version: 1.0.0
+// Version: 1.0.1
 // Module ID: rotate-camera-8d
 // ===========================
 //
-// Rotating Camera 8D
+// Rotate Camera 8D
 //
 // WHAT THIS MODULE DOES
 // ---------------------
@@ -25,9 +25,9 @@
 //   if movement keys are still held.
 // • The patch is narrow: larger or non-unit dx/dy calls to moveMany are left untouched,
 //   minimizing conflicts with other modules and macros.
-// • Note: Foundry's grid layer itself does not rotate. When the camera is rotated,
-//   the grid may appear misaligned or invisible in some orientations. This is a core
-//   engine behavior, not a bug in this module.
+// • Foundry's grid layer itself does not rotate. When the camera is rotated, the grid
+//   may appear misaligned or invisible in some orientations. This is a core engine
+//   behavior, not a bug in this module.
 //
 // ===========================
 
@@ -36,8 +36,8 @@ const MODULE_ID = "rotate-camera-8d";
 class RotatingCamera8D {
   constructor() {
     // Logical camera state
-    this.cameraStep = 0;          // 0..7 (multiple of 45°)
-    this.displayAngleDeg = 0;     // accumulated angle in degrees
+    this.cameraStep = 0;      // 0..7 (multiples of 45°)
+    this.displayAngleDeg = 0; // accumulated angle in degrees
     this.isInit = false;
 
     // Q/E rotation debounce
@@ -46,10 +46,8 @@ class RotatingCamera8D {
     this._lastRotateAt = 0;
 
     // Held movement tracking
-    this._heldLoopRunning = false;       // continuous loop after rotation
-    this.HELD_STEP_MS = 110;             // interval between loop steps
-
-    // Simple flag: was there movement when the camera rotated?
+    this._heldLoopRunning = false; // continuous loop after rotation
+    this.HELD_STEP_MS = 110;       // interval between loop steps
     this._hadMovementOnRotate = false;
 
     // Discrete directions, clockwise, starting at "N"
@@ -81,21 +79,30 @@ class RotatingCamera8D {
     return (typeof canvas !== "undefined") && canvas.ready && canvas.scene;
   }
 
+  /**
+   * World coords of the current screen center, robust to rotation.
+   */
   currentCenterWorld() {
     const view = canvas?.app?.renderer?.screen;
-    const interaction = canvas?.app?.renderer?.plugins?.interaction || canvas?.app?.renderer?.plugins?.eventSystem;
+    const interaction = canvas?.app?.renderer?.plugins?.interaction
+                     || canvas?.app?.renderer?.plugins?.eventSystem;
     const stage = canvas?.stage;
 
-    if (!view || !stage) return canvas.scene?.dimensions?.center || { x: 0, y: 0 };
+    if (!view || !stage) {
+      return canvas.scene?.dimensions?.center || { x: 0, y: 0 };
+    }
 
     // Preferred: interaction.mapPositionToPoint + stage.toLocal (handles rotation)
     try {
-      if (interaction && typeof interaction.mapPositionToPoint === "function" && typeof stage.toLocal === "function") {
+      if (interaction && typeof interaction.mapPositionToPoint === "function" &&
+          typeof stage.toLocal === "function") {
         const px = view.width / 2;
         const py = view.height / 2;
         const p = new PIXI.Point();
+
         interaction.mapPositionToPoint(p, px, py);
         if (typeof stage.updateTransform === "function") stage.updateTransform();
+
         const worldPoint = stage.toLocal(p);
         return { x: worldPoint.x, y: worldPoint.y };
       }
@@ -112,7 +119,9 @@ class RotatingCamera8D {
       const dy = sy - wt.ty;
       const a = wt.a, b = wt.b, c = wt.c, d = wt.d;
       const det = a * d - b * c;
-      if (Math.abs(det) < 1e-8) return canvas.scene?.dimensions?.center || { x: 0, y: 0 };
+      if (Math.abs(det) < 1e-8) {
+        return canvas.scene?.dimensions?.center || { x: 0, y: 0 };
+      }
       const lx = (d * dx - c * dy) / det;
       const ly = (-b * dx + a * dy) / det;
       return { x: lx, y: ly };
@@ -122,12 +131,34 @@ class RotatingCamera8D {
     }
   }
 
+  /**
+   * Rough check if there is any active vision that will care about perception updates.
+   */
+  hasActiveVision() {
+    if (!this.isCanvasReady()) return false;
+
+    // Controlled tokens with enabled sight
+    const controlled = canvas.tokens?.controlled ?? [];
+    if (controlled.some(t => {
+      const d = t.document;
+      return d.sight?.enabled || d.hasSight;
+    })) return true;
+
+    // Or any existing vision source
+    const vs = canvas.perception?.vision?.sources;
+    if (vs && vs.size) return true;
+
+    return false;
+  }
+
   // ---------- visual rotation of the PIXI stage ----------
 
   applyRotationVisual(deltaSteps, { duration = 160, immediate = false } = {}) {
     if (!this.isCanvasReady()) return;
+
     const stage = canvas.stage;
     const startRad = stage.rotation;
+    const centerBefore = this.currentCenterWorld();
 
     // Capture movement state BEFORE rotating
     this._captureHeldKeys();
@@ -137,37 +168,75 @@ class RotatingCamera8D {
     const endRad = (this.displayAngleDeg * Math.PI) / 180;
 
     const notifyCenterAndRestoreMovement = () => {
+      // Even after animation, nudge a zero-duration pan on the same point
+      // to ensure Foundry updates perception/vision.
+      if (centerBefore && canvas?.animatePan) {
+        try {
+          canvas.animatePan({ x: centerBefore.x, y: centerBefore.y, duration: 0 });
+        } catch (err) {
+          console.warn("[RotCam8D] animatePan after rotation failed:", err);
+        }
+      }
+
       const centerWorld = this.currentCenterWorld();
       Hooks.call("rotatingCamera.rotated", centerWorld);
       this._restoreHeldKeyMovement();
     };
 
+    // Instant rotation (no easing)
     if (immediate || duration <= 0) {
       stage.rotation = endRad;
+
+      if (centerBefore && canvas?.animatePan) {
+        try {
+          canvas.animatePan({ x: centerBefore.x, y: centerBefore.y, duration: 0 });
+        } catch (err) {
+          console.warn("[RotCam8D] animatePan (instant) failed:", err);
+        }
+      }
+
       notifyCenterAndRestoreMovement();
       return;
     }
 
+    const hasVision = this.hasActiveVision();
     const t0 = Date.now();
+
     const anim = () => {
-      const t = Math.min(1, (Date.now() - t0) / duration);
+      const elapsed = Date.now() - t0;
+      const t = Math.min(1, elapsed / duration);
       const eased = 1 - Math.pow(1 - t, 3);
+
       stage.rotation = startRad + (endRad - startRad) * eased;
+
+      // While animating and there is active vision, do a zero-duration pan
+      // on every frame to force Foundry to refresh shadows/vision.
+      if (hasVision && centerBefore && canvas?.animatePan) {
+        try {
+          canvas.animatePan({ x: centerBefore.x, y: centerBefore.y, duration: 0 });
+        } catch (err) {
+          console.warn("[RotCam8D] animatePan during rotation failed:", err);
+        }
+      }
+
       if (t < 1) {
         requestAnimationFrame(anim);
       } else {
         notifyCenterAndRestoreMovement();
       }
     };
+
     requestAnimationFrame(anim);
   }
 
   rotate(deltaSteps, sourceKey = null) {
     const now = Date.now();
+
     if (sourceKey) {
       if (this.rotateGuard.has(sourceKey)) return;
       this.rotateGuard.add(sourceKey);
     }
+
     if (now - this._lastRotateAt < this.ROTATE_DEBOUNCE_MS) return;
     this._lastRotateAt = now;
 
@@ -181,9 +250,7 @@ class RotatingCamera8D {
   // ---------- movement capture & restoration ----------
 
   /**
-   * Instead of watching raw codes like "KeyW" or "ArrowUp",
-   * we use Foundry's own movement state:
-   * game.keybindings.moveKeys = a Set of logical directions (UP/DOWN/LEFT/RIGHT).
+   * Uses game.keybindings.moveKeys (logical UP/DOWN/LEFT/RIGHT) instead of raw codes.
    */
   _captureHeldKeys() {
     const kb = game.keybindings;
@@ -220,17 +287,15 @@ class RotatingCamera8D {
     if (!this.isCanvasReady()) return;
     if (!canvas.tokens?.controlled?.length) return;
 
-    // First: immediate "nudge" in the new direction
+    // Immediate “nudge” with the new orientation
     await this.nudgeKeyboardMovement();
 
-    // Then: continuous loop while movement is still active
+    // Then a small loop while movement is still held
     this._heldMoveLoop();
   }
 
   /**
-   * Uses game.keybindings.moveKeys + ClientKeybindings.MOVEMENT_DIRECTIONS
-   * to figure out which logical directions (UP/DOWN/LEFT/RIGHT) are active,
-   * regardless of which physical keys the user bound.
+   * Computes base direction from Foundry's logical movement directions.
    */
   getBaseVectorFromMoveKeys() {
     const kb = game.keybindings;
@@ -239,7 +304,8 @@ class RotatingCamera8D {
     const moveKeys = kb.moveKeys;
     if (!(moveKeys instanceof Set) || !moveKeys.size) return { dx: 0, dy: 0 };
 
-    const MOVE = kb.constructor?.MOVEMENT_DIRECTIONS;
+    const MOVE = kb.constructor?.MOVEMENT_DIRECTIONS
+              || game.keybindings?.constructor?.MOVEMENT_DIRECTIONS;
     if (!MOVE) return { dx: 0, dy: 0 };
 
     const hasUp = MOVE.UP && moveKeys.has(MOVE.UP);
@@ -309,7 +375,9 @@ class RotatingCamera8D {
         if (!options) options = {};
         let { dx = 0, dy = 0 } = options;
 
-        if ((dx || dy) && Number.isInteger(dx) && Number.isInteger(dy) &&
+        // Only reorient unit steps (dx/dy in [-1, 0, 1]).
+        if ((dx || dy) &&
+            Number.isInteger(dx) && Number.isInteger(dy) &&
             Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
           const vec = self.reorientVector(dx, dy);
           options = { ...options, dx: vec.dx, dy: vec.dy };
@@ -322,7 +390,7 @@ class RotatingCamera8D {
     };
 
     this._moveManyPatched = true;
-    console.info("[RotCam8D] TokenLayer.moveMany patched for camera based movement.");
+    console.info("[RotCam8D] TokenLayer.moveMany patched for camera-based movement.");
   }
 
   // ---------- initialization ----------
@@ -335,7 +403,7 @@ class RotatingCamera8D {
     this.displayAngleDeg = 0;
 
     if (this.isCanvasReady()) {
-      this.applyRotationVisual(0, { immediate: true });
+      this.applyRotationVisual(0, { immediate: true, duration: 0 });
       this.installMoveManyPatch();
     }
   }

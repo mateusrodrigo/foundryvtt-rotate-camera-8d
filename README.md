@@ -1,7 +1,7 @@
-# Rotate Camera 8D (v1.0.0)
+# Rotate Camera 8D (v1.0.1)
 
 ![Foundry Version](https://img.shields.io/badge/Foundry-v13.350%2B-blue)
-![Version](https://img.shields.io/badge/Version-1.0.0-green)
+![Version](https://img.shields.io/badge/Version-1.0.1-green)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow)
 
 Adds smooth **45° camera rotation** to **Foundry VTT (v13.350+)**, with full **8-direction movement remap** that keeps WASD navigation consistent regardless of rotation.  
@@ -33,8 +33,8 @@ Designed to be **non-intrusive**, lightweight, and fully compatible with **[Foll
 
 ## Installation
 **Manifest URLs:**  
-- GitHub (Raw): https://raw.githubusercontent.com/mateusrodrigo/foundryvtt-rotate-camera-8d/v1.0.0/module.json  
-- jsDelivr: https://cdn.jsdelivr.net/gh/mateusrodrigo/foundryvtt-rotate-camera-8d@v1.0.0/module.json  
+- GitHub (Raw): https://raw.githubusercontent.com/mateusrodrigo/foundryvtt-rotate-camera-8d/v1.0.1/module.json  
+- jsDelivr: https://cdn.jsdelivr.net/gh/mateusrodrigo/foundryvtt-rotate-camera-8d@v1.0.1/module.json  
 
 1. In Foundry VTT, go to **Add-on Modules → Install Module**  
 2. Paste one of the URLs above and click **Install**  
