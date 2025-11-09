@@ -1,7 +1,34 @@
 {
-  "RC8D.RotateLeft.name": "Girar câmera para a esquerda",
-  "RC8D.RotateLeft.hint": "Gira o canvas 45° para a esquerda em torno do centro da sua visão.",
+  "RC8D.RotateLeft.name": "Rotacionar Câmera para Esquerda",
+  "RC8D.RotateLeft.hint": "Gira a câmera 45° no sentido anti-horário em torno do centro da visão.",
 
-  "RC8D.RotateRight.name": "Girar câmera para a direita",
-  "RC8D.RotateRight.hint": "Gira o canvas 45° para a direita em torno do centro da sua visão."
+  "RC8D.RotateRight.name": "Rotacionar Câmera para Direita",
+  "RC8D.RotateRight.hint": "Gira a câmera 45° no sentido horário em torno do centro da visão.",
+
+  "RC8D.ShowCompass.name": "Mostrar Bússola",
+  "RC8D.ShowCompass.hint": "Exibe uma bússola no topo da tela indicando o norte real.",
+
+  "RC8D.CompassSize.name": "Tamanho da Bússola",
+  "RC8D.CompassSize.hint": "Ajusta o tamanho da bússola em pixels.",
+
+  "RC8D.ShowCompassLabels.name": "Mostrar Rótulos da Bússola",
+  "RC8D.ShowCompassLabels.hint": "Mostra ou oculta os rótulos N/NE/L/SE/S/SO/O/NO ao redor da bússola.",
+
+  "RC8D.Compass.N": "N",
+  "RC8D.Compass.NE": "NE",
+  "RC8D.Compass.E": "L",
+  "RC8D.Compass.SE": "SE",
+  "RC8D.Compass.S": "S",
+  "RC8D.Compass.SW": "SO",
+  "RC8D.Compass.W": "O",
+  "RC8D.Compass.NW": "NO",
+
+  "RC8D.CompassTheme.name": "Tema da Bússola",
+  "RC8D.CompassTheme.hint": "Define o estilo visual da bússola do Rotate Camera 8D.",
+
+  "RC8D.CompassTheme.classicSimple": "Clássico (Simples)",
+  "RC8D.CompassTheme.darkMetal": "Metal Escuro",
+  "RC8D.CompassTheme.parchmentRpg": "Pergaminho RPG",
+  "RC8D.CompassTheme.arcaneBlue": "Azul Arcano",
+  "RC8D.CompassTheme.steampunkBrass": "Latão Steampunk"
 }

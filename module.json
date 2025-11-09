@@ -1,14 +1,14 @@
 {
   "id": "rotate-camera-8d",
   "title": "Rotate Camera 8D",
-  "description": "Adds 45° camera rotation to Foundry VTT with full 8-direction movement remap. Smooth, non-intrusive, and fully compatible with any keybinding setup. Designed to work seamlessly alongside Follow The Token.",
-  "version": "1.0.1",
+  "description": "Adds 45° camera rotation to Foundry VTT with full 8-direction movement remap. Smooth, non-intrusive, and fully compatible with any keybinding setup. Now includes automatic vision refresh and seamless integration with Follow The Token for synchronized cinematic rotation.",
+  "version": "1.1.0",
   "license": "MIT",
 
   "compatibility": { "minimum": "13", "verified": "13.350" },
 
   "authors": [
-    { "name": "Rodrigo", "url": "https://github.com/mateusrodrigo" }
+    { "name": "Mateus Rodrigo", "url": "https://github.com/mateusrodrigo" }
   ],
 
   "url": "https://github.com/mateusrodrigo/foundryvtt-rotate-camera-8d",
@@ -16,7 +16,17 @@
   "changelog": "https://github.com/mateusrodrigo/foundryvtt-rotate-camera-8d/releases",
   "bugs": "https://github.com/mateusrodrigo/foundryvtt-rotate-camera-8d/issues",
 
-  "esmodules": ["scripts/rotate-camera-8d.js"],
+  "esmodules": [
+    "scripts/rotate-camera-8d.js",
+    "scripts/rotate-camera-8d-compass-themes.js",
+    "scripts/rotate-camera-8d-compass-core.js",
+
+    "scripts/themes/rc8d-theme-classic-simple.js",
+    "scripts/themes/rc8d-theme-dark-metal.js",
+    "scripts/themes/rc8d-theme-parchment-rpg.js",
+    "scripts/themes/rc8d-theme-arcane-blue.js",
+    "scripts/themes/rc8d-theme-steampunk-brass.js"
+  ],
   "styles": [],
   "packs": [],
   "socket": false,
@@ -26,8 +36,8 @@
     { "lang": "pt-BR", "name": "Português (Brasil)", "path": "lang/pt-BR.json" }
   ],
 
-  "manifest": "https://raw.githubusercontent.com/mateusrodrigo/foundryvtt-rotate-camera-8d/v1.0.1/module.json",
-  "download": "https://github.com/mateusrodrigo/foundryvtt-rotate-camera-8d/releases/download/v1.0.1/rotate-camera-8d-v1.0.1.zip",
+  "manifest": "https://raw.githubusercontent.com/mateusrodrigo/foundryvtt-rotate-camera-8d/v1.1.0/module.json",
+  "download": "https://github.com/mateusrodrigo/foundryvtt-rotate-camera-8d/releases/download/v1.1.0/rotate-camera-8d-v1.1.0.zip",
 
   "flags": { "showBugReportLink": true }
 }
