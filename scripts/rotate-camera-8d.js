@@ -143,9 +143,6 @@ class RotatingCamera8D {
       const centerWorld = this.currentCenterWorld();
       const angleRad = (this.displayAngleDeg * Math.PI) / 180;
 
-      // Old compatibility hook (pre-1.1.0)
-      Hooks.call("rotatingCamera.rotated", centerWorld);
-
       // New dedicated hook: used by plugins (e.g. compass) to react to final angle
       Hooks.callAll("rotateCamera8dRotated", {
         angleDeg: this.displayAngleDeg,
