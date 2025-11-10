@@ -163,7 +163,6 @@ class RotatingCamera8D {
           refreshLighting: true,
           refreshPrimary: true,
           refreshOcclusion: true,
-          forceUpdateFog: true
         });
       } catch (e) {
         console.warn("[RotCam8D] perception final update failed:", e);
@@ -182,7 +181,6 @@ class RotatingCamera8D {
           refreshVision: true,
           refreshLighting: true,
           refreshOcclusion: true,
-          forceUpdateFog: true
         });
       } catch (e) {
         console.warn("[RotCam8D] perception instant update failed:", e);
@@ -244,6 +242,17 @@ class RotatingCamera8D {
       }
     } catch (e) {
       console.warn("[RotCam8D] Failed to check Follow The Token Cinematic:", e);
+    }
+
+    // Per-scene flag: block rotation on specific scenes (e.g. landing page)
+    try {
+      const scene = game.scenes?.current;
+      if (scene?.getFlag && scene.getFlag(MODULE_ID, "disableRotation")) {
+        ui.notifications?.info(game.i18n.localize("RC8D.DisableRotation.notification"));
+        return;
+      }
+    } catch (e) {
+      console.warn("[RotCam8D] Scene flag check failed:", e);
     }
 
     // Simple guard so holding the key does not spam rotate calls
@@ -532,6 +541,36 @@ Hooks.on("canvasPan", () => {
   } catch (e) {
     console.warn("[RotCam8D] perception update on pan failed:", e);
   }
+});
+
+/**
+ * Scene config option: per-scene disable rotation (v13.350+)
+ */
+Hooks.on("renderSceneConfig", (app, html, context, options) => {
+  /** @type {Scene} */
+  const scene = app.document;
+  if (!scene) return;
+
+  const value = scene.getFlag(MODULE_ID, "disableRotation") ?? false;
+  const name  = `flags.${MODULE_ID}.disableRotation`;
+
+  const input = foundry.applications.fields.createCheckboxInput({ name, value });
+
+  const group = foundry.applications.fields.createFormGroup({
+    input,
+    label: "RC8D.DisableRotation.label",
+    hint:  "RC8D.DisableRotation.hint",
+    localize: true,
+    //classes: ["stacked"]
+  });
+
+  const basicOptions =
+    html.querySelector('.tab[data-tab="basics"]');
+
+  if (!basicOptions) return;
+
+  basicOptions.append(group);
+  app.setPosition();
 });
 
 // Simple global reference for debugging / macros
