@@ -56,6 +56,16 @@
 - Ensured persistence of compass state, rotation angle, and selected theme between scene reloads.
 - Improved initial alignment when enabling the compass mid-session.
 
+**Technical Notes**
+
+- The legacy perception flag `forceUpdateFog` has been **deprecated** in Foundry v13.350+.  
+  It has been safely removed from internal refresh calls with no impact on fog or vision behavior.  
+  Current perception updates now rely on:
+  - `refreshVision`
+  - `refreshLighting`
+  - `refreshOcclusion`
+  - `refreshPrimary` (when needed)
+
 ---
 
 ### 1.0.1 – Vision Refresh and Stability Improvements
