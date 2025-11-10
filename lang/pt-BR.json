@@ -30,5 +30,9 @@
   "RC8D.CompassTheme.darkMetal": "Metal Escuro",
   "RC8D.CompassTheme.parchmentRpg": "Pergaminho RPG",
   "RC8D.CompassTheme.arcaneBlue": "Azul Arcano",
-  "RC8D.CompassTheme.steampunkBrass": "Latão Steampunk"
+  "RC8D.CompassTheme.steampunkBrass": "Latão Steampunk",
+
+  "RC8D.DisableRotation.label": "Bloquear Rotate Camera 8D",
+  "RC8D.DisableRotation.hint": "Bloqueia a rotação da câmera nesta cena (útil para cenas de introdução ou panorâmicas).",
+  "RC8D.DisableRotation.notification": "A rotação da câmera está desativada nesta cena."
 }
