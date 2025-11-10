@@ -61,6 +61,7 @@ class RC8DCompassPlugin {
   /**
    * Update the compass for the given angle (in degrees).
    * If angleDeg is undefined/null, reuse the last known angle.
+   * Also respects the per-scene rotation disable flag.
    */
   update(angleDeg) {
     if (!game?.settings) return;
@@ -69,19 +70,28 @@ class RC8DCompassPlugin {
 
     let enabled = false;
     try {
+      // Client-side setting: global "show compass" toggle
       enabled = game.settings.get(RC8D_MODULE_ID, "showCompass");
+
+      // Per-scene flag: if rotation is disabled, also disable the compass
+      const scene = game.scenes?.current;
+      const sceneBlocked =
+        scene?.getFlag && scene.getFlag(RC8D_MODULE_ID, "disableRotation");
+      if (sceneBlocked) enabled = false;
     } catch {
       enabled = false;
     }
 
-    // If disabled, remove compass from screen and bail out
+    // If disabled (by setting or by scene flag), remove compass and bail out
     if (!enabled) {
       this.destroyCompass();
       return;
     }
 
-    const compassSize = game.settings.get(RC8D_MODULE_ID, "compassSize") || 80;
-    const showLabels = game.settings.get(RC8D_MODULE_ID, "showCompassLabels") !== false;
+    const compassSize =
+      game.settings.get(RC8D_MODULE_ID, "compassSize") || 80;
+    const showLabels =
+      game.settings.get(RC8D_MODULE_ID, "showCompassLabels") !== false;
     const themeId = this.getThemeId();
 
     const el = this.createCompassElement();
@@ -89,19 +99,22 @@ class RC8DCompassPlugin {
     el.style.height = `${compassSize}px`;
 
     const labels = {
-      N:  game.i18n.localize("RC8D.Compass.N"),
+      N: game.i18n.localize("RC8D.Compass.N"),
       NE: game.i18n.localize("RC8D.Compass.NE"),
-      E:  game.i18n.localize("RC8D.Compass.E"),
+      E: game.i18n.localize("RC8D.Compass.E"),
       SE: game.i18n.localize("RC8D.Compass.SE"),
-      S:  game.i18n.localize("RC8D.Compass.S"),
+      S: game.i18n.localize("RC8D.Compass.S"),
       SW: game.i18n.localize("RC8D.Compass.SW"),
-      W:  game.i18n.localize("RC8D.Compass.W"),
+      W: game.i18n.localize("RC8D.Compass.W"),
       NW: game.i18n.localize("RC8D.Compass.NW")
     };
 
     // Lazy-create SVG structure only once, delegated to theme renderer
     if (!el.querySelector("svg")) {
-      if (window.RC8DCompassTheme && typeof window.RC8DCompassTheme.render === "function") {
+      if (
+        window.RC8DCompassTheme &&
+        typeof window.RC8DCompassTheme.render === "function"
+      ) {
         window.RC8DCompassTheme.render(el, labels, themeId);
       } else {
         // Fallback minimal visual if theme file is missing
@@ -128,7 +141,7 @@ class RC8DCompassPlugin {
       l.style.display = showLabels ? "block" : "none";
     });
 
-    // Toggle big ticks visibility (optional behavior)
+    // Toggle main ticks visibility (optional behavior)
     const tickGroups = el.querySelectorAll(".rc8d-ticks-main");
     tickGroups.forEach(g => {
       g.style.display = showLabels ? "none" : "block";
@@ -185,7 +198,6 @@ Hooks.once("init", () => {
     }
   });
 
-
   const themeList = window.RC8DCompassTheme?.THEMES || [];
   const themeChoices = {};
   for (const t of themeList) {
@@ -214,6 +226,13 @@ Hooks.on("ready", () => {
   RC8DCompass.update(angleDeg);
 });
 
+// Also re-sync when the canvas is ready for a new scene
+Hooks.on("canvasReady", () => {
+  const mod = game.modules.get(RC8D_MODULE_ID);
+  const angleDeg = mod?.api?.getAngleDeg?.() ?? 0;
+  RC8DCompass.update(angleDeg);
+});
+
 // Update during rotation animation for real-time feedback
 Hooks.on("rotateCamera8dAnimating", (payload) => {
   if (!payload) return;
@@ -224,6 +243,13 @@ Hooks.on("rotateCamera8dAnimating", (payload) => {
 Hooks.on("rotateCamera8dRotated", (payload) => {
   if (!payload) return;
   RC8DCompass.update(payload.angleDeg);
+});
+
+// Re-evaluate the compass whenever the active scene is updated,
+// so changes to the per-scene rotation flag take effect immediately.
+Hooks.on("updateScene", (scene, data, options, userId) => {
+  if (!scene.active) return;
+  RC8DCompass.update(RC8DCompass.lastAngleDeg);
 });
 
 // Optional global API for debugging or external usage
