@@ -30,5 +30,9 @@
   "RC8D.CompassTheme.darkMetal": "Dark Metal",
   "RC8D.CompassTheme.parchmentRpg": "Parchment RPG",
   "RC8D.CompassTheme.arcaneBlue": "Arcane Blue",
-  "RC8D.CompassTheme.steampunkBrass": "Steampunk Brass"
+  "RC8D.CompassTheme.steampunkBrass": "Steampunk Brass",
+
+  "RC8D.DisableRotation.label": "Disable Rotate Camera 8D",
+  "RC8D.DisableRotation.hint": "Blocks camera rotation for this scene (useful for landing or overview scenes).",
+  "RC8D.DisableRotation.notification": "Camera rotation is disabled in this scene."
 }
